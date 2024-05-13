@@ -7,6 +7,8 @@ typedef enum {
 typedef struct {
     char grid[15][15];
     status status;
+    int foodX;
+    int foodY;
 } gameState;
 
 typedef enum {
