@@ -24,6 +24,10 @@ typedef struct {
     direction nextDirection;
 } snake;
 
+void restart(gameState *gameState, snake *snake);
+
+void addFood(gameState *gameState);
+
 void move_snake(gameState *gameState, snake *snake);
 
 void turn(snake *snake);

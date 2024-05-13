@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "raylib.h"
 #include "../headers/game.h"
 
@@ -12,6 +13,7 @@ int main() {
     InitWindow(screenWidth, screenHeight, "Snake Game");
 
     gameState.grid[snake.x][snake.y] = '.';
+    addFood(&gameState);
 
     SetTargetFPS(60);
 
@@ -23,6 +25,7 @@ int main() {
             for (int i = 0; i < 15; ++i) {
                 for (int j = 0; j < 15; ++j) {
                     if (gameState.grid[i][j] == '.') DrawRectangle(i * squareSize, j * squareSize, squareSize, squareSize, gameState.status == GAMEOVER ? RED : BLACK);
+                    else if (gameState.grid[i][j] == '-') DrawRectangle(i * squareSize, j * squareSize, squareSize, squareSize, DARKBLUE);
                     else DrawRectangle(i * squareSize, j * squareSize, squareSize, squareSize, (i + j) % 2 == 0 ? GRAY : LIGHTGRAY);
                 }
             }
@@ -40,15 +43,7 @@ int main() {
                 gameState.status = gameState.status == PAUSED ? ONGOING : PAUSED;
             }
 
-            if (IsKeyPressed(KEY_ENTER)) {
-                gameState.status = ONGOING;
-                gameState.grid[snake.x][snake.y] = ' ';
-                snake.x = 0;
-                snake.y = 0;
-                snake.steps = 0;
-                snake.nextDirection = RIGHT;
-                gameState.grid[snake.x][snake.y] = '.';
-            }
+            if (IsKeyPressed(KEY_ENTER)) restart(&gameState, &snake);
 
         EndDrawing();
     }
@@ -56,6 +51,34 @@ int main() {
     CloseWindow();
 
     return 0;
+}
+
+void addFood(gameState *gameState)
+{
+    int x = (random() % (14 - 0 + 1)) + 0;
+    int y = (random() % (14 - 0 + 1)) + 0;
+
+    while (gameState->grid[x][y] == '.') {
+        x = (random() % (14 - 0 + 1)) + 0;
+        y = (random() % (14 - 0 + 1)) + 0;
+    }
+
+    gameState->grid[x][y] = '-';
+}
+
+void restart(gameState *gameState, snake *snake) {
+    gameState->status = ONGOING;
+    snake->x = 0;
+    snake->y = 0;
+    snake->steps = 0;
+    snake->nextDirection = RIGHT;
+    for (int i = 0; i < 15; ++i) {
+        for (int j = 0; j < 15; ++j) {
+            gameState->grid[i][j] = ' ';
+        }
+    }
+    gameState->grid[snake->x][snake->y] = '.';
+    addFood(gameState);
 }
 
 void move_snake(gameState *gameState, snake *snake)
@@ -82,6 +105,7 @@ void move_snake(gameState *gameState, snake *snake)
         }
 
         snake->steps = 0;
+        if (gameState->grid[snake->x][snake->y] == '-') addFood(gameState);
         gameState->grid[snake->x][snake->y] = '.';
     }
 }
