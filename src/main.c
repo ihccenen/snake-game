@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <time.h>
 #include "raylib.h"
 #include "../headers/game.h"
 
@@ -24,11 +25,12 @@ int main() {
 
             for (int i = 0; i < 15; ++i) {
                 for (int j = 0; j < 15; ++j) {
-                    if (gameState.grid[i][j] == '.') DrawRectangle(i * squareSize, j * squareSize, squareSize, squareSize, gameState.status == GAMEOVER ? RED : BLACK);
-                    else if (gameState.grid[i][j] == '-') DrawRectangle(i * squareSize, j * squareSize, squareSize, squareSize, DARKBLUE);
-                    else DrawRectangle(i * squareSize, j * squareSize, squareSize, squareSize, (i + j) % 2 == 0 ? GRAY : LIGHTGRAY);
+                    DrawRectangle(i * squareSize, j * squareSize, squareSize, squareSize, (i + j) % 2 == 0 ? GRAY : LIGHTGRAY);
                 }
             }
+
+            DrawRectangle(gameState.foodX * squareSize, gameState.foodY * squareSize, squareSize, squareSize, DARKBLUE);
+            DrawRectangle(snake.x * squareSize, snake.y * squareSize, squareSize, squareSize, gameState.status == GAMEOVER ? RED : BLACK);
 
             if (gameState.status == ONGOING) {
                 move_snake(&gameState, &snake);
@@ -55,6 +57,7 @@ int main() {
 
 void addFood(gameState *gameState)
 {
+    srandom(time(NULL));
     int x = (random() % (14 - 0 + 1)) + 0;
     int y = (random() % (14 - 0 + 1)) + 0;
 
@@ -63,6 +66,8 @@ void addFood(gameState *gameState)
         y = (random() % (14 - 0 + 1)) + 0;
     }
 
+    gameState->foodX = x;
+    gameState->foodY = y;
     gameState->grid[x][y] = '-';
 }
 
