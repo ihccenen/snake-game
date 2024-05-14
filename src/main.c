@@ -36,6 +36,7 @@ int main() {
             for (int i = 0; i < 15; ++i) {
                 for (int j = 0; j < 15; ++j) {
                     DrawRectangle(i * squareSize, j * squareSize, squareSize, squareSize, (i + j) % 2 == 0 ? GRAY : LIGHTGRAY);
+                    if (gameState.grid[i][j] == '.') DrawRectangle(i * squareSize, j * squareSize, squareSize, squareSize, BLACK);
                 }
             }
 
@@ -69,17 +70,17 @@ int main() {
 void addFood(gameState *gameState)
 {
     srandom(time(NULL));
-    int x = (random() % 15) + 0;
-    int y = (random() % 15) + 0;
+    int x = random() % 15;
+    int y = random() % 15;
 
     while (gameState->grid[x][y] == '.') {
-        x = (random() % 15) + 0;
-        y = (random() % 15) + 0;
+        x = random() % 15;
+        y = random() % 15;
     }
 
     gameState->foodX = x;
     gameState->foodY = y;
-    gameState->grid[x][y] = '-';
+    gameState->grid[gameState->foodX][gameState->foodY] = '-';
 }
 
 void restart(gameState *gameState, snake *snake) {
@@ -133,21 +134,14 @@ void push(int x, int y, body_t *body)
 
 void move_body(int x, int y, body_t *body, gameState *gameState)
 {
-    if (gameState->grid[x][y] == '-') {
-        addFood(gameState);
-        push(x, y, body);
-    }
-
     if (body->next == NULL) {
         gameState->grid[body->x][body->y] = ' ';
         body->x = x;
         body->y = y;
-        gameState->grid[x][y] = '.';
     } else {
         move_body(body->x, body->y, body->next, gameState);
         body->x = x;
         body->y = y;
-        gameState->grid[x][y] = '.';
     }
 }
 
@@ -161,21 +155,22 @@ void move_snake(gameState *gameState, snake *snake)
 
         if (gameState->status != GAMEOVER) snake->direction = snake->nextDirection;
 
-        if (snake->direction == UP) {
-            if (y - 1 < 0 || gameState->grid[x][y - 1] == '.') gameState->status = GAMEOVER;
-            else move_body(x, y - 1, &snake->body, gameState);
-        } else if (snake->direction == RIGHT) {
-            if (x + 1 >= 15 || gameState->grid[x + 1][y] == '.') gameState->status = GAMEOVER;
-            else move_body(x + 1, y, &snake->body, gameState);
-        } else if (snake->direction == DOWN) {
-            if (y + 1 >= 15 || gameState->grid[x][y + 1] == '.') gameState->status = GAMEOVER;
-            else move_body(x, y + 1, &snake->body, gameState);
-        } else if (snake->direction == LEFT) {
-            if (x - 1 < 0 || gameState->grid[x - 1][y] == '.') gameState->status = GAMEOVER;
-            else move_body(x - 1, y, &snake->body, gameState);
-        }
+        if (snake->direction == UP) y -= 1;
+        else if (snake->direction == RIGHT) x += 1;
+        else if (snake->direction == DOWN) y += 1;
+        else if (snake->direction == LEFT) x -= 1;
 
-        snake->steps = 0;
+        if (gameState->grid[x][y] == '.' || x < 0 || x > 14 || y < 0 || y > 14) {
+            gameState->status = GAMEOVER;
+        } else {
+            if (gameState->grid[x][y] == '-') {
+                addFood(gameState);
+                push(x, y, &snake->body);
+            }
+            snake->steps = 0;
+            move_body(x, y, &snake->body, gameState);
+            gameState->grid[snake->body.x][snake->body.y] = '.';
+        }
     }
 }
 
